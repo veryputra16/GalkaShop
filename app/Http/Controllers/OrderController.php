@@ -159,6 +159,19 @@ class OrderController extends Controller
         ];
         Notification::send($users, new StatusNotification($details));
 
+        //notifikasi WhatsApp ke admin
+        $adminPhone = env('ADMIN_PHONE');
+        if ($adminPhone) {
+            $adminMessage = "*[Order Baru Masuk]*\n\n"
+                . "No. Order   : {$order->order_number}\n"
+                . "Nama        : {$order->first_name} {$order->last_name}\n"
+                . "Total Bayar : Rp " . number_format($order->total_amount, 0, ',', '.') . "\n"
+                . "Pembayaran  : " . strtoupper($order->payment_method) . "\n"
+                . "Status      : " . strtoupper($order->status);
+
+            $this->sendWhatsAppNotification($adminPhone, $adminMessage);
+        }
+
         if(request('payment_method')=='paypal'){
             return redirect()->route('payment')->with(['id'=>$order->id]);
         }
@@ -431,7 +444,6 @@ class OrderController extends Controller
         $password = env('WA_API_AUTH_PASS');
 
         try {
-            // Tambahkan @s.whatsapp.net jika belum ada
             if (!str_ends_with($phone, '@s.whatsapp.net')) {
                 $phone .= '@s.whatsapp.net';
             }
