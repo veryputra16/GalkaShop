@@ -7,13 +7,14 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Shipping;
 use App\User;
-use PDF;
-use Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+// use Notification;
 use Helper;
 use Illuminate\Support\Str;
 use App\Notifications\StatusNotification;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 //midtrans payment
 use Midtrans\Config;
@@ -273,7 +274,6 @@ class OrderController extends Controller
                 $waMessage = "*Tracking your order*\n\n"
                         . "No. Order : {$order->order_number}\n"
                         . "Name      : {$order->first_name} {$order->last_name}\n"
-                  
                         . "Status    : *" . strtoupper($order->status) . "*\n\n"
                         . "Pesan:\n"
                         . $customMessage;
@@ -357,7 +357,7 @@ class OrderController extends Controller
         // return $order;
         $file_name=$order->order_number.'-'.$order->first_name.'.pdf';
         // return $file_name;
-        $pdf=PDF::loadview('backend.order.pdf',compact('order'));
+        $pdf = Pdf::loadView('backend.order.pdf', compact('order'));
         return $pdf->download($file_name);
     }
     // Income chart
@@ -453,13 +453,13 @@ class OrderController extends Controller
                 'message' => $message,
             ]);
 
-            \Log::info('WA response:', ['body' => $response->body()]);
+            Log::info('WA response:', ['body' => $response->body()]);
 
             if ($response->failed()) {
-                \Log::error('Gagal mengirim WhatsApp', ['response' => $response->body()]);
+                Log::error('Gagal mengirim WhatsApp', ['response' => $response->body()]);
             }
         } catch (\Exception $e) {
-            \Log::error('Exception WhatsApp API', ['message' => $e->getMessage()]);
+            Log::error('Exception WhatsApp API', ['message' => $e->getMessage()]);
         }
     }
 }
